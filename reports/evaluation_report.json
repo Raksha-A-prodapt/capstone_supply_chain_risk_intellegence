@@ -1,0 +1,271 @@
+{
+  "timestamp": "2026-09-30T19:21:39.372449",
+  "total_records": 120000,
+  "ml_metrics": {
+    "delivery_risk_model": {
+      "name": "Delivery Risk Classifier",
+      "algorithm": "HistGradientBoostingClassifier",
+      "f1_score": 0.4934,
+      "roc_auc": 0.7737,
+      "pr_auc": 0.5898,
+      "precision": 0.6275,
+      "recall": 0.4065,
+      "test_samples": 24000,
+      "confusion_matrix": [
+        [
+          15719,
+          1610
+        ],
+        [
+          3959,
+          2712
+        ]
+      ],
+      "class_distribution": {
+        "on_time": 17329,
+        "late": 6671
+      }
+    },
+    "anomaly_detector": {
+      "name": "Supply Chain Anomaly Detector",
+      "algorithm": "IsolationForest",
+      "f1_score": 0.5549,
+      "precision": 0.6469,
+      "recall": 0.4857,
+      "false_positive_rate": 0.011,
+      "total_records_analyzed": 120000,
+      "anomalies_flagged": 3600
+    },
+    "demand_forecaster": {
+      "name": "Demand Time Series Forecaster",
+      "algorithm": "HistGradientBoostingRegressor",
+      "mae": 343.59,
+      "rmse": 436.83,
+      "mape": 29.68,
+      "train_samples": 8423,
+      "test_samples": 2106,
+      "mean_test_demand": 1414.75
+    }
+  },
+  "agent_metrics": {
+    "total_test_queries": 10,
+    "routing_accuracy": 1.0,
+    "agent_success_rate": 1.0,
+    "mean_grounding_score": 1.0,
+    "mean_hallucination_rate": 0.0,
+    "mean_factual_consistency": 1.0,
+    "fallback_rate": 0.0,
+    "average_latency_ms": 5391.0,
+    "total_agent_invocations": 45,
+    "successful_agent_invocations": 45,
+    "sample_evaluations": [
+      {
+        "id": "Q01",
+        "query": "Which suppliers have a high risk of delivery delays?",
+        "category": "SUPPLIER_RISK",
+        "expected_primary_agent": "supplier_risk_agent",
+        "agents_invoked": [
+          "supplier_risk_agent",
+          "delivery_risk_agent",
+          "insight_agent",
+          "recommendation_agent"
+        ],
+        "routing_success": true,
+        "risk_level": "CRITICAL",
+        "grounding_score": 1.0,
+        "hallucination_rate": 0.0,
+        "factual_consistency": 1.0,
+        "fallback_used": false,
+        "latency_ms": 5736.68
+      },
+      {
+        "id": "Q02",
+        "query": "Why is supplier SUP-023 risky and what is their late delivery rate?",
+        "category": "SUPPLIER_INVESTIGATION",
+        "expected_primary_agent": "supplier_risk_agent",
+        "agents_invoked": [
+          "supplier_risk_agent",
+          "delivery_risk_agent",
+          "insight_agent",
+          "recommendation_agent"
+        ],
+        "routing_success": true,
+        "risk_level": "CRITICAL",
+        "grounding_score": 1.0,
+        "hallucination_rate": 0.0,
+        "factual_consistency": 1.0,
+        "fallback_used": false,
+        "latency_ms": 5047.21
+      },
+      {
+        "id": "Q03",
+        "query": "Which products are most affected by supplier disruptions and at risk of stock-out?",
+        "category": "INVENTORY_STOCKOUT",
+        "expected_primary_agent": "inventory_risk_agent",
+        "agents_invoked": [
+          "inventory_risk_agent",
+          "supplier_risk_agent",
+          "delivery_risk_agent",
+          "insight_agent",
+          "recommendation_agent"
+        ],
+        "routing_success": true,
+        "risk_level": "CRITICAL",
+        "grounding_score": 1.0,
+        "hallucination_rate": 0.0,
+        "factual_consistency": 1.0,
+        "fallback_used": false,
+        "latency_ms": 6111.62
+      },
+      {
+        "id": "Q04",
+        "query": "Identify unusual changes in supplier lead times and delivery anomalies.",
+        "category": "ANOMALY_DETECTION",
+        "expected_primary_agent": "delivery_risk_agent",
+        "agents_invoked": [
+          "supplier_risk_agent",
+          "delivery_risk_agent",
+          "insight_agent",
+          "recommendation_agent"
+        ],
+        "routing_success": true,
+        "risk_level": "CRITICAL",
+        "grounding_score": 1.0,
+        "hallucination_rate": 0.0,
+        "factual_consistency": 1.0,
+        "fallback_used": false,
+        "latency_ms": 4989.92
+      },
+      {
+        "id": "Q05",
+        "query": "What is the demand forecast for product PROD-001?",
+        "category": "DEMAND_FORECAST",
+        "expected_primary_agent": "demand_agent",
+        "agents_invoked": [
+          "demand_agent",
+          "inventory_risk_agent",
+          "insight_agent",
+          "recommendation_agent"
+        ],
+        "routing_success": true,
+        "risk_level": "LOW",
+        "grounding_score": 1.0,
+        "hallucination_rate": 0.0,
+        "factual_consistency": 1.0,
+        "fallback_used": false,
+        "latency_ms": 5164.54
+      },
+      {
+        "id": "Q06",
+        "query": "How could a delay from supplier SUP-001 affect inventory availability?",
+        "category": "SUPPLIER_IMPACT",
+        "expected_primary_agent": "supplier_risk_agent",
+        "agents_invoked": [
+          "inventory_risk_agent",
+          "supplier_risk_agent",
+          "delivery_risk_agent",
+          "insight_agent",
+          "recommendation_agent"
+        ],
+        "routing_success": true,
+        "risk_level": "HIGH",
+        "grounding_score": 1.0,
+        "hallucination_rate": 0.0,
+        "factual_consistency": 1.0,
+        "fallback_used": false,
+        "latency_ms": 4858.5
+      },
+      {
+        "id": "Q07",
+        "query": "What are the major supply chain risks and what evidence supports them?",
+        "category": "CROSS_DOMAIN_RISK",
+        "expected_primary_agent": "insight_agent",
+        "agents_invoked": [
+          "supplier_risk_agent",
+          "delivery_risk_agent",
+          "inventory_risk_agent",
+          "demand_agent",
+          "insight_agent",
+          "recommendation_agent"
+        ],
+        "routing_success": true,
+        "risk_level": "CRITICAL",
+        "grounding_score": 1.0,
+        "hallucination_rate": 0.0,
+        "factual_consistency": 1.0,
+        "fallback_used": false,
+        "latency_ms": 6049.47
+      },
+      {
+        "id": "Q08",
+        "query": "What happens if supplier SUP-023 is delayed by 7 days?",
+        "category": "WHAT_IF_SIMULATION",
+        "expected_primary_agent": "supplier_risk_agent",
+        "agents_invoked": [
+          "supplier_risk_agent",
+          "delivery_risk_agent",
+          "inventory_risk_agent",
+          "insight_agent",
+          "recommendation_agent"
+        ],
+        "routing_success": true,
+        "risk_level": "CRITICAL",
+        "grounding_score": 1.0,
+        "hallucination_rate": 0.0,
+        "factual_consistency": 1.0,
+        "fallback_used": false,
+        "latency_ms": 5964.35
+      },
+      {
+        "id": "Q09",
+        "query": "Which carriers and 3PL routes have the highest delivery delays?",
+        "category": "LOGISTICS_RISK",
+        "expected_primary_agent": "delivery_risk_agent",
+        "agents_invoked": [
+          "delivery_risk_agent",
+          "supplier_risk_agent",
+          "insight_agent",
+          "recommendation_agent"
+        ],
+        "routing_success": true,
+        "risk_level": "CRITICAL",
+        "grounding_score": 1.0,
+        "hallucination_rate": 0.0,
+        "factual_consistency": 1.0,
+        "fallback_used": false,
+        "latency_ms": 4962.2
+      },
+      {
+        "id": "Q10",
+        "query": "Which suppliers should be investigated based on recent performance?",
+        "category": "SUPPLIER_AUDIT",
+        "expected_primary_agent": "supplier_risk_agent",
+        "agents_invoked": [
+          "supplier_risk_agent",
+          "delivery_risk_agent",
+          "insight_agent",
+          "recommendation_agent"
+        ],
+        "routing_success": true,
+        "risk_level": "CRITICAL",
+        "grounding_score": 1.0,
+        "hallucination_rate": 0.0,
+        "factual_consistency": 1.0,
+        "fallback_used": false,
+        "latency_ms": 5025.59
+      }
+    ]
+  },
+  "system_configuration": {
+    "model_name": "gpt-4o-mini",
+    "embedding_model": "text-embedding-3-small",
+    "gateway_url": "https://keygateway1.arshnivlabs.com",
+    "risk_weights": {
+      "late_rate": 0.35,
+      "avg_delay": 0.2,
+      "lead_time_var": 0.15,
+      "anomaly_freq": 0.15,
+      "ml_prob": 0.15
+    }
+  }
+}

@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: supply_chain_risk_api
+    ports:
+      - "8000:8000"
+    environment:
+      - GATEWAY_URL=https://keygateway1.arshnivlabs.com
+      - LEARNER_KEY=pubatch_trainer
+      - MODEL_NAME=gpt-4o-mini
+      - EMBEDDING_MODEL=text-embedding-3-small
+      - DATA_PATH=data/dataset.csv
+      - MODELS_DIR=artifacts/models
+      - REPORTS_DIR=reports
+      - HOST=0.0.0.0
+      - PORT=8000
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./reports:/app/reports
+    restart: unless-stopped
