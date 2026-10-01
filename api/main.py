@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from config.settings import settings
+from api.auth import auth_router
 from api.routes import router
 
 app = FastAPI(
@@ -29,6 +30,7 @@ app.add_middleware(
 )
 
 # Register API Router
+app.include_router(auth_router)
 app.include_router(router)
 
 # Mount HTML evaluation report directory

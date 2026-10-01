@@ -55,6 +55,7 @@ class DeliveryRiskAgent:
             c["avg_delay"] = round(float(c["avg_delay"]), 1)
 
         # Customs procedure impact
+       # groupby() makes customs_procedure the index of the resulting DataFrame.
         customs_impact = sub_df.groupby("customs_procedure").agg(
             orders=("order_id", "count"),
             late_rate=("late_order", "mean"),

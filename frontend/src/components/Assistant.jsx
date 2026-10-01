@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Send, Sparkles, AlertTriangle, ShieldCheck, CheckCircle2, 
-  Clock, ArrowRight, ToggleLeft, ToggleRight, HelpCircle, Layers 
+  Clock, ArrowRight, ToggleLeft, ToggleRight, HelpCircle, Layers,
+  BookmarkPlus, Trash2
 } from 'lucide-react';
 import AgentTraceView from './AgentTraceView';
 import GuardrailsView from './GuardrailsView';
@@ -11,6 +12,50 @@ export default function Assistant({ initialQuery }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [forceFallback, setForceFallback] = useState(false);
+  const [savedQueries, setSavedQueries] = useState([]);
+  const [savedMessage, setSavedMessage] = useState('');
+  const [savingQuery, setSavingQuery] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/saved-queries')
+      .then((response) => response.ok ? response.json() : [])
+      .then(setSavedQueries)
+      .catch((err) => console.error('Failed to load saved queries', err));
+  }, []);
+
+  const saveQuery = async () => {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery || savingQuery) return;
+
+    setSavingQuery(true);
+    setSavedMessage('');
+    try {
+      const response = await fetch('/api/saved-queries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: trimmedQuery }),
+      });
+      if (!response.ok) throw new Error('Could not save query');
+      const saved = await response.json();
+      setSavedQueries((current) => [saved, ...current]);
+      setSavedMessage('Saved');
+    } catch (err) {
+      setSavedMessage(err.message);
+    } finally {
+      setSavingQuery(false);
+    }
+  };
+
+  const deleteSavedQuery = async (queryId) => {
+    try {
+      const response = await fetch(`/api/saved-queries/${queryId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Could not remove saved query');
+      setSavedQueries((current) => current.filter((item) => item.id !== queryId));
+      setSavedMessage('Saved query removed');
+    } catch (err) {
+      setSavedMessage(err.message);
+    }
+  };
 
   const sampleQueries = [
     "Which suppliers have the highest delivery risk?",
@@ -114,6 +159,50 @@ export default function Assistant({ initialQuery }) {
               {sq}
             </button>
           ))}
+        </div>
+
+        <div className="space-y-2 border-t border-slate-100 pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-xs font-bold uppercase tracking-wide text-slate-500">Saved queries</div>
+            <div className="flex items-center gap-3">
+              {savedMessage && <span className="text-xs text-slate-500" role="status">{savedMessage}</span>}
+              <button
+                type="button"
+                onClick={saveQuery}
+                disabled={!query.trim() || savingQuery}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <BookmarkPlus className="h-4 w-4" /> {savingQuery ? 'Saving...' : 'Save current query'}
+              </button>
+            </div>
+          </div>
+          {savedQueries.length > 0 ? (
+            <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+              {savedQueries.map((item) => (
+                <div key={item.id} className="flex items-center gap-2 px-3 py-2">
+                  <button
+                    type="button"
+                    onClick={() => { setQuery(item.query); handleSearch(item.query); }}
+                    className="min-w-0 flex-1 truncate text-left text-xs text-slate-700 hover:text-emerald-800"
+                    title={item.query}
+                  >
+                    {item.query}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteSavedQuery(item.id)}
+                    className="rounded p-1 text-slate-400 transition hover:bg-rose-50 hover:text-rose-700"
+                    title="Remove saved query"
+                    aria-label={`Remove saved query: ${item.query}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400">No saved queries yet.</p>
+          )}
         </div>
       </div>
 

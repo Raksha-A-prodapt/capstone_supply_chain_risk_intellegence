@@ -3,7 +3,7 @@ What-If Risk Impact Simulator
 Simulates operational cascading impacts when a specific supplier experiences a delay disruption.
 Propagates delay -> delivery -> inventory depletion -> stock-out risk -> financial business impact.
 """
-
+#. It estimates how a supplier delay could affect inventory;
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 import numpy as np

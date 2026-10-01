@@ -45,4 +45,10 @@ class Settings:
     HOST: str = os.getenv("HOST", "127.0.0.1")
     PORT: int = int(os.getenv("PORT", 8000))
 
+    # Single-user demo login; override both values in the environment outside local demos.
+    AUTH_USERNAME: str = os.getenv("AUTH_USERNAME", "demo@raksha.com")
+    AUTH_PASSWORD: str = os.getenv("AUTH_PASSWORD", "SupplyChainDemo2026!")
+    SESSION_TTL_SECONDS: int = int(os.getenv("SESSION_TTL_SECONDS", 28800))
+    SESSION_COOKIE_SECURE: bool = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
+
 settings = Settings()

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   LayoutDashboard, Sparkles, RefreshCw, Truck, Award, 
-  ShieldCheck, Layers, GitBranch 
+  ShieldCheck, LogOut, ClipboardList
 } from 'lucide-react';
 
 import Dashboard from './components/Dashboard';
@@ -9,10 +9,48 @@ import Assistant from './components/Assistant';
 import WhatIfSimulator from './components/WhatIfSimulator';
 import SuppliersTable from './components/SuppliersTable';
 import EvaluationDashboard from './components/EvaluationDashboard';
+import Login from './components/Login';
+import IncidentHistory from './components/IncidentHistory';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [pendingQuery, setPendingQuery] = useState('');
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/auth/me')
+      .then((response) => {
+        if (!response.ok) throw new Error('No active session');
+        return response.json();
+      })
+      .then((data) => { if (active) setUser(data.user); })
+      .catch(() => { if (active) setUser(null); })
+      .finally(() => { if (active) setAuthChecked(true); });
+    return () => { active = false; };
+  }, []);
+
+  const handleLogin = async (email, password) => {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Sign-in failed');
+    setUser(data.user);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      setUser(null);
+      setActiveTab('dashboard');
+      setPendingQuery('');
+    }
+  };
 
   const navigateToAssistant = (query) => {
     setPendingQuery(query);
@@ -25,7 +63,13 @@ export default function App() {
     { id: 'simulator', label: 'What-If Simulator', icon: RefreshCw },
     { id: 'suppliers', label: 'Suppliers Scorecard', icon: Truck },
     { id: 'evaluation', label: 'Evaluation & ML', icon: Award },
+    { id: 'incidents', label: 'Incidents', icon: ClipboardList },
   ];
+
+  if (!authChecked) {
+    return <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-500">Checking workspace session...</div>;
+  }
+  if (!user) return <Login onLogin={handleLogin} />;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
@@ -75,6 +119,19 @@ export default function App() {
                 );
               })}
             </nav>
+            <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
+              <span className="hidden lg:block max-w-40 truncate text-xs text-slate-500" title={user}>{user}</span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign out</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -99,6 +156,10 @@ export default function App() {
 
         {activeTab === 'evaluation' && (
           <EvaluationDashboard />
+        )}
+
+        {activeTab === 'incidents' && (
+          <IncidentHistory />
         )}
       </main>
 

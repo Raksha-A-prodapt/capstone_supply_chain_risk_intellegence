@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   AlertTriangle, ShieldCheck, TrendingUp, Package, Truck, 
-  ArrowUpRight, AlertCircle, Clock, CheckCircle2 
+  ArrowUpRight, AlertCircle, Clock, CheckCircle2, Download
 } from 'lucide-react';
+import { downloadCsv } from '../utils/downloadCsv';
 
 export default function Dashboard({ onSelectQuery }) {
   const [suppliers, setSuppliers] = useState([]);
@@ -15,7 +16,7 @@ export default function Dashboard({ onSelectQuery }) {
       try {
         const [supRes, invRes, anomRes] = await Promise.all([
           fetch('/api/suppliers').then(r => r.json()),
-          fetch('/api/inventory?limit=8').then(r => r.json()),
+          fetch('/api/inventory?limit=100').then(r => r.json()),
           fetch('/api/anomalies?limit=6').then(r => r.json())
         ]);
         setSuppliers(supRes || []);
@@ -195,11 +196,22 @@ export default function Dashboard({ onSelectQuery }) {
 
         {/* Critical Inventory & Stockouts (1 col) */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Package className="w-4 h-4 text-emerald-600" /> Critical Stockout Watch
-            </h2>
-            <p className="text-xs text-slate-500">Deterministic inventory coverage & ROQ</p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Package className="w-4 h-4 text-emerald-600" /> Critical Stockout Watch
+              </h2>
+              <p className="text-xs text-slate-500">Deterministic inventory coverage & ROQ</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => downloadCsv('inventory-risk.csv', inventory)}
+              disabled={!inventory.length}
+              title="Export inventory risks as CSV"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-600 transition hover:border-emerald-500 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Download className="h-4 w-4" /> CSV
+            </button>
           </div>
 
           <div className="space-y-3">

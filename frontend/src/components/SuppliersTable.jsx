@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ArrowUpRight, Filter, ShieldAlert } from 'lucide-react';
+import { Search, ArrowUpRight, ShieldAlert, Download } from 'lucide-react';
+import { downloadCsv } from '../utils/downloadCsv';
 
 export default function SuppliersTable({ onSelectSupplier }) {
   const [suppliers, setSuppliers] = useState([]);
@@ -59,6 +60,15 @@ export default function SuppliersTable({ onSelectSupplier }) {
             <option value="MEDIUM">Medium Only</option>
             <option value="LOW">Low Only</option>
           </select>
+          <button
+            type="button"
+            onClick={() => downloadCsv('supplier-risk.csv', filtered)}
+            disabled={!filtered.length}
+            title="Export filtered suppliers as CSV"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-emerald-500 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Download className="h-4 w-4" /> CSV
+          </button>
         </div>
       </div>
 

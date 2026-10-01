@@ -211,7 +211,17 @@ MODELS_DIR=artifacts/models
 REPORTS_DIR=reports
 HOST=127.0.0.1
 PORT=8000
+AUTH_USERNAME=demo@raksha.com
+AUTH_PASSWORD=SupplyChainDemo2026!
+SESSION_TTL_SECONDS=28800
+SESSION_COOKIE_SECURE=false
 ```
+
+### Demo Login and App Data
+- Sign in with **demo@raksha.com** and **SupplyChainDemo2026!**.
+- The backend verifies this configured single-user account and sets an expiring HttpOnly session cookie; no JWT is used. Existing `/api` data endpoints require that session.
+- Override `AUTH_USERNAME` and `AUTH_PASSWORD` in `.env` before sharing the app. Set `SESSION_COOKIE_SECURE=true` when serving over HTTPS.
+- Saved queries and incident acknowledgement history are stored in `artifacts/application_state.sqlite3` and survive backend restarts. Sessions are held in memory and expire after the configured `SESSION_TTL_SECONDS`.
 
 ### 2. Generate Dataset & Train ML Models
 ```bash

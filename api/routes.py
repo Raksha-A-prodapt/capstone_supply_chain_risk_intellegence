@@ -7,15 +7,17 @@ inventory monitoring, anomaly tracking, forecasting, evaluation, and what-if sim
 import json
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
 
+from api.auth import get_current_user
+from api import storage
 from config.settings import settings
 from agents.context import SupplyChainContext
 from assistant import SupplyChainAssistant
 from simulator.what_if_simulator import WhatIfSimulator
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", dependencies=[Depends(get_current_user)])
 
 # Models
 class QueryRequest(BaseModel):
@@ -29,6 +31,9 @@ class SimulateRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 3
+
+class SavedQueryRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=500)
 
 # Lazy load assistant instance
 _assistant: Optional[SupplyChainAssistant] = None
@@ -133,6 +138,71 @@ def run_what_if_simulation(payload: SimulateRequest) -> Dict[str, Any]:
     ctx = SupplyChainContext.get_instance()
     sim = WhatIfSimulator(ctx)
     return sim.simulate_supplier_delay(supplier_id=payload.supplier_id, added_delay_days=payload.delay_days)
+
+@router.get("/saved-queries")
+def get_saved_queries(user: str = Depends(get_current_user)) -> List[Dict[str, Any]]:
+    return storage.list_saved_queries(user)
+
+@router.post("/saved-queries", status_code=status.HTTP_201_CREATED)
+def save_query(payload: SavedQueryRequest, user: str = Depends(get_current_user)) -> Dict[str, Any]:
+    query = payload.query.strip()
+    if not query:
+        raise HTTPException(status_code=422, detail="Query cannot be blank")
+    return storage.create_saved_query(user, query)
+
+@router.delete("/saved-queries/{query_id}")
+def remove_saved_query(query_id: int, user: str = Depends(get_current_user)) -> Dict[str, bool]:
+    if not storage.delete_saved_query(user, query_id):
+        raise HTTPException(status_code=404, detail="Saved query not found")
+    return {"deleted": True}
+
+@router.get("/incidents")
+def get_incidents(user: str = Depends(get_current_user)) -> List[Dict[str, Any]]:
+    ctx = SupplyChainContext.get_instance()
+    current_incidents: List[Dict[str, str]] = []
+
+    for supplier in ctx.supplier_profiles:
+        severity = supplier.get("supplier_risk_level")
+        if severity not in {"CRITICAL", "HIGH"}:
+            continue
+        supplier_id = supplier["supplier_id"]
+        current_incidents.append({
+            "incident_key": f"supplier:{supplier_id}",
+            "category": "Supplier risk",
+            "entity_id": supplier_id,
+            "title": f"{severity.title()} risk: {supplier.get('supplier_name', supplier_id)}",
+            "severity": severity,
+            "description": (
+                f"Risk score {supplier.get('supplier_risk_score')}; "
+                f"late delivery rate {float(supplier.get('late_delivery_rate', 0)) * 100:.1f}%"
+            ),
+        })
+
+    for item in ctx.critical_inventories:
+        severity = item.get("risk_level")
+        if severity not in {"CRITICAL", "HIGH"}:
+            continue
+        product_id = item["product_id"]
+        current_incidents.append({
+            "incident_key": f"inventory:{product_id}",
+            "category": "Inventory risk",
+            "entity_id": product_id,
+            "title": f"{severity.title()} stockout risk: {item.get('product_name', product_id)}",
+            "severity": severity,
+            "description": (
+                f"{item.get('days_of_supply')} days of supply; "
+                f"projected stockout {item.get('projected_stockout_date')}"
+            ),
+        })
+
+    return storage.sync_incidents(current_incidents)
+
+@router.post("/incidents/{incident_id}/acknowledge")
+def acknowledge_incident(incident_id: int, user: str = Depends(get_current_user)) -> Dict[str, Any]:
+    incident = storage.acknowledge_incident(incident_id, user)
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return incident
 
 @router.get("/health")
 def health_check() -> Dict[str, Any]:

@@ -15,6 +15,8 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import precision_score, recall_score, f1_score
 from config.settings import settings
+# “anomaly” means an order whose delivery behavior looks unusually different from the normal pattern.
+
 
 class SupplyChainAnomalyDetector:
     def __init__(self, model_path: Path = None):

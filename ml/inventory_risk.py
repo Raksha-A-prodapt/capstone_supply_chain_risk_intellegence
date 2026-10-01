@@ -40,7 +40,7 @@ class InventoryRiskAnalyzer:
         product_id = latest_record["product_id"]
         product_name = latest_record["product_name"]
         current_inventory = int(latest_record["inventory_level"])
-        reorder_point = int(latest_record["reorder_point"])
+        reorder_point = int(latest_record["reorder_point"])#point reaches where new order to be placed
         
         # Recent demand dynamics (last 30 orders/records)
         recent_demands = df_product_records["demand"].tail(30)
@@ -65,6 +65,8 @@ class InventoryRiskAnalyzer:
         days_of_supply = round(current_inventory / daily_demand, 1)
 
         # Projected Stockout Date
+        # If we keep selling at the current daily demand and 
+        # don't receive new stock, when will our inventory reach zero?
         current_date = datetime.now()
         days_to_stockout = max(0, int(np.floor(current_inventory / daily_demand)))
         projected_stockout_date = (current_date + timedelta(days=days_to_stockout)).strftime("%Y-%m-%d")
